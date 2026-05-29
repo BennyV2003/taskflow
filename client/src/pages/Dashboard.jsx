@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import API from '../api/axios'
 import DailyGoal from '../components/DailyGoal'
+import { formatDistanceToNow } from 'date-fns'
 
 
 function Dashboard() {
@@ -17,6 +18,16 @@ function Dashboard() {
   useEffect(() => {
     fetchTasks()
   }, [])
+
+  const [, setTick] = useState(0)
+
+useEffect(() => {
+  const interval = setInterval(() => {
+    setTick(tick => tick + 1)
+  }, 60000)
+
+  return () => clearInterval(interval)
+}, [])
 
   const fetchTasks = async () => {
     try {
@@ -63,6 +74,17 @@ function Dashboard() {
     }
   }
 
+  const formatTime = (timestamp) => {
+  try {
+    const date = new Date(timestamp)
+    if (isNaN(date.getTime())) return 'just now'
+    return formatDistanceToNow(date, { addSuffix: true })
+  } catch {
+    
+    return 'just now'
+  }
+}
+
   const handleLogout = () => {
     // Clear everything from localStorage and send user back to login
     localStorage.removeItem('token')
@@ -94,12 +116,18 @@ function Dashboard() {
           <h2 style={styles.cardTitle}>New Task</h2>
           <form onSubmit={handleCreateTask}>
             <input
-              style={styles.input}
-              type="text"
-              placeholder="Task title"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              required
+                style={styles.input}
+                type="text"
+                placeholder="Task title"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                onKeyDown={(e) => {
+    
+                    if (e.key === 'Enter' && title.trim()) {
+                    handleCreateTask(e)
+                    }
+            }}
+            required
             />
             <textarea
               style={styles.textarea}
@@ -121,15 +149,19 @@ function Dashboard() {
             <p style={{ color: '#666' }}>No tasks yet. Add one above!</p>
           ) : (
             tasks.map(task => (
-              <div key={task.id} style={styles.taskItem}>
-                <div style={styles.taskInfo}>
+                <div key={task.id} style={styles.taskItem}>
+                    <div style={styles.taskInfo}>
                   <p style={styles.taskTitle}>{task.title}</p>
                   {task.description && (
                     <p style={styles.taskDesc}>{task.description}</p>
                   )}
+                  {/* Shows "2 hours ago" instead of raw timestamp */}
+                  <p style={styles.taskTime}>
+                        {formatTime(task.created_at)}
+                    </p>
                 </div>
                 <div style={styles.taskActions}>
-                  {/* Status dropdown */}
+                  
                   <select
                     style={styles.select}
                     value={task.status}
@@ -267,6 +299,11 @@ const styles = {
     cursor: 'pointer',
     fontSize: '0.9rem'
   },
+  taskTime: {
+  fontSize: '0.75rem',
+  color: '#aaa',
+  marginTop: '0.25rem'
+},
   error: {
     color: 'red',
     marginBottom: '1rem'
