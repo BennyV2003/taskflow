@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import API from '../api/axios'
+import DailyGoal from '../components/DailyGoal'
+
 
 function Dashboard() {
   const [tasks, setTasks] = useState([])
@@ -86,6 +88,7 @@ function Dashboard() {
 
         {error && <p style={styles.error}>{error}</p>}
 
+        <DailyGoal tasks={tasks} />
         
         <div style={styles.card}>
           <h2 style={styles.cardTitle}>New Task</h2>
